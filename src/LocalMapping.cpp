@@ -68,13 +68,13 @@ void LocalMapping::Run()
 
             // Check recent MapPoints
             // VI-B recent map points culling
-            // 剔除ProcessNewKeyFrame函数中引入的不合格MapPoints
+            // 剔除ProcessNewKeyFrame函数中引入的不合格MapPoints     //xiang :ProcessNewKeyFrame引入的不合格MapPoints只会在双目或rgbd情况
             MapPointCulling();
 
             // Triangulate new MapPoints
             // VI-C new map points creation
             // 相机运动过程中与相邻关键帧通过三角化恢复出一些MapPoints
-            CreateNewMapPoints();
+            CreateNewMapPoints();             //xiang:这里可能会引入不合格MapPoints
 
             // 已经处理完队列中的最后的一个关键帧
             if(!CheckNewKeyFrames())

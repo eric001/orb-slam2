@@ -1830,7 +1830,7 @@ bool Tracking::Relocalization()
             if(bNoMore)
             {
                 vbDiscarded[i]=true;
-                nCandidates--;
+                nCandidates--;                    //这里是不是直接加个continue好一点,因为都已经标记discard了??
             }
 
             // If a Camera Pose is computed, optimize
@@ -1856,7 +1856,7 @@ bool Tracking::Relocalization()
                 // 步骤5：通过PoseOptimization对姿态进行优化求解
                 int nGood = Optimizer::PoseOptimization(&mCurrentFrame);
 
-                if(nGood<10)
+                if(nGood<10)       //内点太少,直接舍弃
                     continue;
 
                 for(int io =0; io<mCurrentFrame.N; io++)

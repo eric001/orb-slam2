@@ -156,9 +156,9 @@ public:
     long unsigned int mnLoopQuery;
     int mnLoopWords;
     float mLoopScore;
-    long unsigned int mnRelocQuery;
-    int mnRelocWords;
-    float mRelocScore;
+    long unsigned int mnRelocQuery; //标记在重定位中被重定位的帧标记为候选帧
+    int mnRelocWords;          //标记在重定位中与重定位的帧一共有多少个相同单词
+    float mRelocScore;          //标记在重定位中重定位的帧的相似分数(Bow分数)
 
     // Variables used by loop closing
     cv::Mat mTcwGBA;
