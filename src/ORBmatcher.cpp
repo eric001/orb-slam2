@@ -202,6 +202,9 @@ bool ORBmatcher::CheckDistEpipolarLine(const cv::KeyPoint &kp1,const cv::KeyPoin
  * @param  vpMapPointMatches F中MapPoints对应的匹配，NULL表示未匹配
  * @return                   成功匹配的数量
  */
+
+//注意FeatureVector为一个map,map的第一个表示对应的特征Id,这个特征Id对应一个vector,这个vector保存这对应这个特征的MapPoint的索引值
+
 int ORBmatcher::SearchByBoW(KeyFrame* pKF,Frame &F, vector<MapPoint*> &vpMapPointMatches)
 {
     const vector<MapPoint*> vpMapPointsKF = pKF->GetMapPointMatches();
@@ -1509,14 +1512,14 @@ int ORBmatcher::SearchByProjection(Frame &CurrentFrame, const Frame &LastFrame, 
     const cv::Mat Rcw = CurrentFrame.mTcw.rowRange(0,3).colRange(0,3);
     const cv::Mat tcw = CurrentFrame.mTcw.rowRange(0,3).col(3);
 
-    const cv::Mat twc = -Rcw.t()*tcw; // twc(w)
+    const cv::Mat twc = -Rcw.t()*tcw; // twc(w),特别注意这是在w坐标系的结果
 
     const cv::Mat Rlw = LastFrame.mTcw.rowRange(0,3).colRange(0,3);
     const cv::Mat tlw = LastFrame.mTcw.rowRange(0,3).col(3); // tlw(l)
 
     // vector from LastFrame to CurrentFrame expressed in LastFrame
     const cv::Mat tlc = Rlw*twc+tlw; // Rlw*twc(w) = twc(l), twc(l) + tlw(l) = tlc(l)
-
+                                    //上面第一个式咋个理解哇?????????????????????????
     // 判断前进还是后退
     const bool bForward = tlc.at<float>(2)>CurrentFrame.mb && !bMono; // 非单目情况，如果Z大于基线，则表示前进
     const bool bBackward = -tlc.at<float>(2)>CurrentFrame.mb && !bMono; // 非单目情况，如果Z小于基线，则表示前进

@@ -1150,7 +1150,7 @@ void TemplatedVocabulary<TDescriptor,F>::transform(
 template<class TDescriptor, class F> 
 void TemplatedVocabulary<TDescriptor,F>::transform(
   const std::vector<TDescriptor>& features,
-  BowVector &v, FeatureVector &fv, int levelsup) const
+  BowVector &v, FeatureVector &fv, int levelsup) const  //levelsup为指定在哪一层进行正向索引
 {
   v.clear();
   fv.clear();

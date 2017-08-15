@@ -17,7 +17,7 @@ endif( CMAKE_BUILD_TYPE MATCHES "Debug" )
 
 LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 
-find_package(OpenCV 2.4.10 REQUIRED)
+find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(Pangolin REQUIRED)
 
@@ -63,11 +63,14 @@ ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.so
 add_executable(mono_kitti Examples/Monocular/mono_kitti.cc)
 target_link_libraries(mono_kitti ${PROJECT_NAME})
 
-add_executable(stereo_kitti Examples/Stereo/stereo_kitti.cpp)
-target_link_libraries(stereo_kitti ${PROJECT_NAME})
+add_executable(mono_tum Examples/Monocular/mono_tum.cc)
+target_link_libraries(mono_tum ${PROJECT_NAME})
 
-add_executable(stereo_EuRoC Examples/Stereo/stereo_EuRoC.cpp)
-target_link_libraries(stereo_EuRoC ${PROJECT_NAME})
+#add_executable(stereo_kitti Examples/Stereo/stereo_kitti.cpp)
+#target_link_libraries(stereo_kitti ${PROJECT_NAME})
+
+#add_executable(stereo_EuRoC Examples/Stereo/stereo_EuRoC.cpp)
+#target_link_libraries(stereo_EuRoC ${PROJECT_NAME})
 
 # Build tools
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/Vocabulary)

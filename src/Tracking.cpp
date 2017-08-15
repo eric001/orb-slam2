@@ -441,10 +441,10 @@ void Tracking::Track()
                     // If relocalization is sucessfull we choose that solution, otherwise we retain
                     // the "visual odometry" solution.
 
-                    // mbVO为1，则表明此帧匹配了很少的3D map点，少于10个，要跪的节奏，既做跟踪又做定位
+                    // mbVO为1，则表明此帧匹配了很少的3D map点，少于10个，要跪的节奏，既做跟踪又做重定位
 
-                    bool bOKMM = false;
-                    bool bOKReloc = false;
+                    bool bOKMM = false;             //标志跟踪是否成功
+                    bool bOKReloc = false;          //标志重定位是否成功
                     vector<MapPoint*> vpMPsMM;
                     vector<bool> vbOutMM;
                     cv::Mat TcwMM;
@@ -532,7 +532,7 @@ void Tracking::Track()
                 cv::Mat LastTwc = cv::Mat::eye(4,4,CV_32F);
                 mLastFrame.GetRotationInverse().copyTo(LastTwc.rowRange(0,3).colRange(0,3));
                 mLastFrame.GetCameraCenter().copyTo(LastTwc.rowRange(0,3).col(3));
-                mVelocity = mCurrentFrame.mTcw*LastTwc; // Tcl
+                mVelocity = mCurrentFrame.mTcw*LastTwc; // Tcl          //更新速度
             }
             else
                 mVelocity = cv::Mat();
@@ -973,6 +973,9 @@ void Tracking::CheckReplacedInLastFrame()
  * 4. 根据姿态剔除误匹配
  * @return 如果匹配数大于10，返回true
  */
+ //将匹配到的MapPoint直接复制给mCurrentFrame作为其3D点.
+ // 在已经初始化的情况下不会利用对极约束求pose,也不会用三角化求3D点.而是直接将上一次的pose作为初始的pose,
+ // 将与参考关键帧中匹配到的MapPoint直接复制给当前帧作为3D点,然后利用g2o优化求解.这里也没用PnP求解
 bool Tracking::TrackReferenceKeyFrame()
 {
     // Compute Bag of Words vector
@@ -986,12 +989,15 @@ bool Tracking::TrackReferenceKeyFrame()
 
     // 步骤2：通过特征点的BoW加快当前帧与参考帧之间的特征点匹配
     // 特征点的匹配关系由MapPoints进行维护
+
+
     int nmatches = matcher.SearchByBoW(mpReferenceKF,mCurrentFrame,vpMapPointMatches);
 
     if(nmatches<15)
         return false;
 
     // 步骤3:将上一帧的位姿态作为当前帧位姿的初始值
+
     mCurrentFrame.mvpMapPoints = vpMapPointMatches;
     mCurrentFrame.SetPose(mLastFrame.mTcw); // 用上一次的Tcw设置初值，在PoseOptimization可以收敛快一些
 
@@ -1131,7 +1137,7 @@ bool Tracking::TrackWithMotionModel()
     // 步骤1：对于双目或rgbd摄像头，根据深度值为上一关键帧生成新的MapPoints
     // （跟踪过程中需要将当前帧与上一帧进行特征点匹配，将上一帧的MapPoints投影到当前帧可以缩小匹配范围）
     // 在跟踪过程中，去除outlier的MapPoint，如果不及时增加MapPoint会逐渐减少
-    // 这个函数的功能就是补充增加RGBD和双目相机上一帧的MapPoints数
+    // 这个函数的功能就是补充增加RGBD和双目相机上一帧的MapPoints数, // 如果上一帧为关键帧，或者单目的情况，则退出
     UpdateLastFrame();
 
     // 根据Const Velocity Model(认为这两帧之间的相对运动和之前两帧间相对运动相同)估计当前帧的位姿
@@ -1162,7 +1168,7 @@ bool Tracking::TrackWithMotionModel()
         return false;
 
     // Optimize frame pose with all matches
-    // 步骤3：优化位姿
+    // 步骤3：优化位姿,优化的同时会标记外点
     Optimizer::PoseOptimization(&mCurrentFrame);
 
     // Discard outliers
@@ -1534,7 +1540,7 @@ void Tracking::SearchLocalPoints()
         
         // Project (this fills MapPoint variables for matching)
         // 步骤2.1：判断LocalMapPoints中的点是否在在视野内
-        if(mCurrentFrame.isInFrustum(pMP,0.5))
+        if(mCurrentFrame.isInFrustum(pMP,0.5))     //isInFrustum函数会标记将来pMP是否会被投影
         {
         	// 观测到该点的帧数加1，该MapPoint在某些帧的视野范围内
             pMP->IncreaseVisible();
@@ -1686,7 +1692,7 @@ void Tracking::UpdateLocalKeyFrames()
 
         KeyFrame* pKF = *itKF;
 
-        // 策略2.1:最佳共视的10帧
+        // 策略2.1:最佳共视的10帧   //与当前帧有共视关系的帧的最佳共视的10帧,加入到mvpLocalKeyFrames
         const vector<KeyFrame*> vNeighs = pKF->GetBestCovisibilityKeyFrames(10);
         for(vector<KeyFrame*>::const_iterator itNeighKF=vNeighs.begin(), itEndNeighKF=vNeighs.end(); itNeighKF!=itEndNeighKF; itNeighKF++)
         {
