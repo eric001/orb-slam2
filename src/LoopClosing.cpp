@@ -212,7 +212,7 @@ bool LoopClosing::DetectLoop()
                 int nPreviousConsistency = mvConsistentGroups[iG].second;
                 int nCurrentConsistency = nPreviousConsistency + 1;
                 if(!vbConsistentGroup[iG])// 这里作者原本意思是不是应该是vbConsistentGroup[i]而不是vbConsistentGroup[iG]呢？（wubo???）
-                {
+                {                         //xiang:应该没有问题吧,vbConsistentGroup的大小和mvConsistentGroups一样,iG遍历的是mvConsistentGroups.设置这个只是为了重复加入"连续组"
                     // 将该“子候选组”的该关键帧打上编号加入到“当前连续组”
                     ConsistentGroup cg = make_pair(spCandidateGroup,nCurrentConsistency);
                     vCurrentConsistentGroups.push_back(cg);
@@ -240,9 +240,13 @@ bool LoopClosing::DetectLoop()
         }
     }
 
+    /**
+     * xiang:当出现回环时候,一定是连续的发现匹配的帧.当第一个发现类似回环的帧之前,mvConsistentGroups一直是为空的.第一个回环帧出现时,会
+     * 初始化mvConsistentGroups,这样,当第二个回环帧到来时候,就可以直接利用.
+     * */
+
     // Update Covisibility Consistent Groups
     mvConsistentGroups = vCurrentConsistentGroups;
-
 
     // Add Current Keyframe to database
     mpKeyFrameDB->add(mpCurrentKF);
@@ -257,7 +261,7 @@ bool LoopClosing::DetectLoop()
         return true;
     }
 
-    mpCurrentKF->SetErase();
+    mpCurrentKF->SetErase();       //xiang:这里根本就执行不到啊!!!!!!!!!!!
     return false;
 }
 
